@@ -1,19 +1,8 @@
+
 import os
-from openai import OpenAI
 from dotenv import load_dotenv
+import google.generativeai as genai
 from models import TriageInput
-
-# Load .env file
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-
-if not api_key:
-    print("❌ API key not found. Check your .env file.")
-else:
-    print("✅ Loaded API Key:", api_key[:8] + "********")
-
-# Create OpenAI client (new format)
-client = OpenAI(api_key=api_key)
 
 def generate_gpt_response(data: TriageInput, urgency_level: str) -> str:
     prompt = (
@@ -29,14 +18,17 @@ def generate_gpt_response(data: TriageInput, urgency_level: str) -> str:
     )
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.6,
-            max_tokens=150
-        )
-        return response.choices[0].message.content.strip()
-
+        load_dotenv()
+        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+        if not GEMINI_API_KEY:
+            print("❌ Gemini API key not found. Check your .env file.")
+            return "⚠️ Unable to generate response. Please try again later."
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(prompt)
+        return response.text.strip() if hasattr(response, 'text') else str(response)
     except Exception as e:
-        print(f"🔥 GPT API Error: {e}")
+        import traceback
+        print("🔥 Gemini API Error:", e)
+        traceback.print_exc()
         return "⚠️ Unable to generate response. Please try again later."

@@ -40,3 +40,7 @@ async def triage_handler(input_data: TriageInput):
         gpt_response=gpt_message,
         alert_trigger=alert
     )
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
